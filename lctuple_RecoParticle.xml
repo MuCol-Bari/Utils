@@ -1,0 +1,347 @@
+<
+xml version="1.0" encoding="us-ascii"?>
+	<!--
+		?xml-stylesheet type="text/xsl"
+		href="http://ilcsoft.desy.de/marlin/marlin.xsl"?
+	-->
+	<!-- ?xml-stylesheet type="text/xsl" href="marlin.xsl"? -->
+
+
+
+<marlin xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="http://ilcsoft.desy.de/marlin/marlin.xsd">
+
+<!-- ======================================================================================================== -->
+  <!-- ======================================================================================================== -->
+  <!-- == List of processors to execute                                                                      == -->
+  <!-- ======================================================================================================== -->
+  <!-- ======================================================================================================== -->
+<execute>
+
+    <!-- ========== Setup  ========== -->
+   <processor name="MyAIDAProcessor"/> 
+   
+   <!-- ==========  Geometry initialization  ========== -->
+    <processor name="InitDD4hep_mod4"/>
+   
+    <!-- ========== vertexing and jet clustering========== -->
+    <!-- <processor name="MyFastJetProcessor"/> -->
+    <!-- <processor name="VertexFinder"/> -->
+    <!-- ========== true jet clustering========== -->
+    <!-- <processor name="MyTrueMCintoRecoForJets"/> -->     
+    <!-- <processor name="MyFastGenJetProcessor"/> -->  
+    
+    <!-- <processor name="MyMergeVTXCollections"/> -->
+   <!-- <processor name="MergeTrackerHits"/> -->
+   <processor name="MergeCaloHits" />
+   
+   <processor name="MyLCTuple" /> 
+   <!-- <processor name="JetHistogramGenJetTuple"/> -->
+
+</execute>
+
+<global>
+	<parameter name="LCIOInputFiles"> reco_mumu_H_cc_10.slcio </parameter>
+	<parameter name="MaxRecordNumber" value="-1" />
+<parameter name="SkipNEvents" value="0" />
+<parameter name="SupressCheck" value="false" />
+<parameter name="AllowToModifyEvent" value="true" />
+<parameter name="Verbosity"	options="DEBUG0-4,MESSAGE0-4,WARNING0-4,ERROR0-4,SILENT"> MESSAGE  </parameter>
+</global>
+
+
+
+
+  <processor name="MyAIDAProcessor" type="AIDAProcessor">
+    <!--Processor that handles AIDA files. Creates on directory per processor.  Processors only need to create and fill the histograms, clouds and tuples. Needs to be the first ActiveProcessor-->
+    <!-- compression of output file 0: false >0: true (default) -->
+    <parameter name="Compress" type="int" value="1"/>
+    <!-- filename without extension-->
+    <parameter name="FileName" type="string" value="ntuple_mumuHcc_2evts"/>
+    <!-- type of output file xml (default) or root ( only OpenScientist)-->
+    <parameter name="FileType" type="string" value="root "/>
+  </processor>
+  
+   <!-- ======================================================================================================== -->
+  <!-- ======================================================================================================== -->
+  <!-- == DD4hep configuration                                                                               == -->
+  <!-- ======================================================================================================== -->
+  <!-- ======================================================================================================== -->
+  
+  <processor name="InitDD4hep_mod4" type="InitializeDD4hep">
+    <!--InitializeDD4hep reads a compact xml file and initializes the DD4hep::LCDD object-->
+    <!--Name of the DD4hep compact xml file to load-->
+    <parameter name="EncodingStringParameter"> GlobalTrackerReadoutID </parameter>
+    <!-- ALE - Use the modified geometry -->
+    <parameter name="DD4hepXMLFile" type="string">
+      /opt/ilcsoft/muonc/detector-simulation/geometries/MuColl_v1/MuColl_v1.xml
+    </parameter>
+  </processor>
+
+
+<!-- Vetex Collection-->
+
+<processor name="MyMergeVTXCollections" type="MergeCollections">
+   <!--MergeCollections creates a transient subset collection that merges all input collections -->
+   <!--Names of all input collections-->
+   <parameter name="InputCollections" type="StringVec"> 
+     PrimaryVertices
+     BuildUpVertices
+     BuildUpVertices_V0
+   </parameter>
+   <!--Optional IDs for input collections - if given id will be added to all objects in merged collections as ext<CollID>()-->
+   <parameter name="InputCollectionIDs" type="IntVec"> 
+      103  104  105
+   </parameter>
+   <!--Name of output collection-->
+   <parameter name="OutputCollection" type="string">MergedVTXCollection </parameter>
+    <!--verbosity level of this processor ("DEBUG0-4,MESSAGE0-4,WARNING0-4,ERROR0-4,SILENT")-->
+   <!--parameter name="Verbosity" type="string">DEBUG </parameter-->
+ </processor>
+
+<!-- Tracker Hits Collection-->
+
+<processor name="MergeTrackerHits" type="MergeCollections">
+   <!--MergeCollections creates a transient subset collection that merges all input collections -->
+   <!--Names of all input collections-->
+   <parameter name="InputCollections" type="StringVec"> 
+	VBTrackerHitsInner 
+	VBTrackerHitsMiddle 
+	VBTrackerHitsOuter 
+	VETrackerHitsInner 
+	VETrackerHitsMiddle 
+	VETrackerHitsOuter 
+	IBTrackerHits 
+	OBTrackerHits 
+	IETrackerHits 
+	OETrackerHits
+   </parameter>
+  <!--Optional IDs for input collections - if given id will be added to all objects in merged collections as ext<CollID>()-->
+   <parameter name="InputCollectionIDs" type="IntVec"> 
+     10 11 12 13 14 15 16 17 18 19
+   </parameter>
+   <!--Name of output collection-->
+   <parameter name="OutputCollection" type="string">TrackerHits </parameter>
+   <!--verbosity level of this processor ("DEBUG0-4,MESSAGE0-4,WARNING0-4,ERROR0-4,SILENT")-->
+   <!--parameter name="Verbosity" type="string">DEBUG </parameter-->
+ </processor>
+
+
+<processor name="MergeCaloHits" type="MergeCollections">
+   <!--MergeCollections creates a transient subset collection that merges all input collections -->
+   <!--Names of all input collections-->
+   <parameter name="InputCollections" type="StringVec">
+        ECALBarrel
+	ECALEndcap
+	ECALOther
+	HCALBarrel
+	HCALEndcap
+	HCALOther
+	MUON
+   </parameter>
+  <!--Optional IDs for input collections - if given id will be added to all objects in merged collections as ext<CollID>()-->
+   <parameter name="InputCollectionIDs" type="IntVec">
+     7 8 9 10 11 12 13
+   </parameter>
+   <!--Name of output collection-->
+   <parameter name="OutputCollection" type="string">CaloHits </parameter>
+   <!--verbosity level of this processor ("DEBUG0-4,MESSAGE0-4,WARNING0-4,ERROR0-4,SILENT")-->
+   <!--parameter name="Verbosity" type="string">DEBUG </parameter-->
+ </processor>
+
+
+
+<!-- Fill Ntuples-->
+
+<processor name="MyLCTuple" type="LCTuple">
+    <!--LCTuple creates a ROOT TTRee with a column wise ntuple from LCIO collections ....-->
+    <parameter name="FullSubsetCollections" type="StringVec"> </parameter>
+    <!--parameter name="PIDBranchDefinition" type="StringVec">
+    Algorithm:dEdxPID dedx
+    electronLikelihood lhe muonLikelihood lhmu  pionLikelihood lhpi kaonLikelihood lhk protonLikelihood lhp hadronLikelihood lhhad
+     </parameter-->
+    <!--Name of the CalorimeterHit collection-->
+    <parameter name="CalorimeterHitCollection" type="string" lcioInType="CalorimeterHit"> CaloHits</parameter>
+    <!--Name of the Cluster collection-->
+    <parameter name="ClusterCollection" type="string" lcioInType="Cluster">  </parameter>
+    <!--Name of the IsoLep collection-->
+    <parameter name="IsoLepCollection" type="string" lcioInType="ReconstructedParticle"> </parameter>
+    <!--Name of the Jet collection-->
+     <parameter name="JetCollection" type="string" lcioInType="ReconstructedParticle"> </parameter>
+    
+    <!--Switch to write out extra parameters calculated using information from Jet Finder-->
+    <parameter name="JetCollectionExtraParameters" type="bool">true</parameter>
+    <!--Switch to write out jet parameters coming from LCFIPlus tagging processor-->
+    <parameter name="JetCollectionTaggingParameters" type="bool">false</parameter>
+    <!--Names of LCRelation collections - need parallel prefix names in RelPrefixes-->
+    <parameter name="LCRelationCollections" type="StringVec" lcioInType="LCRelation">
+ 	RecoMCTruthLink 
+        CaloHitMCTruthLink
+    </parameter>
+    <!-- Names of prefixes for variables from LCRelation collections - needs to be parallel to LCRelationCollections (one prefix per collection)-->
+    <parameter name="LCRelationPrefixes" type="StringVec">  
+	r2m 
+        h2m
+    </parameter>
+    <!--Names of LCRelation collections of PFO-->
+    <parameter name="LCRelationwithPFOCollections" type="string" lcioInType="LCRelation"> </parameter>
+    <!--Name of the MCParticle collection-->
+    <parameter name="MCParticleCollection" type="string" lcioInType="MCParticle"> MCParticle  </parameter>
+    <parameter name="MCParticleNotReco" type="string" lcioInType="MCParticle"> </parameter>
+    <!--Name of the MCParticle collection where the overlay is removed-->
+    <!--parameter name="MCParticleRemoveOverlayCollection" type="string" lcioInType="MCParticle"> </parameter-->
+    <!--Name of the PFO collection with Relation-->
+    <!--parameter name="PFOwithRelationCollection" type="string" lcioInType="ReconstructedParticle"> </parameter-->
+    <!--Name of the ReconstructedParticle collection-->
+    <parameter name="RecoParticleCollection" type="string" lcioInType="ReconstructedParticle"> MergedRecoParticles </parameter> 
+    <!--Name of the SimCalorimeterHit collection-->
+    <parameter name="SimCalorimeterHitCollection" type="string" lcioInType="SimCalorimeterHit">  </parameter>
+    <!--Name of the SimTrackerHit collection-->
+    <parameter name="SimTrackerHitCollection" type="string" lcioInType="SimTrackerHit"> </parameter>
+    <!--Name of the Track collection-->
+    <parameter name="TrackCollection" type="string" lcioInType="Track"> </parameter>
+    <!--Name of the TrackerHit collection-->
+    <parameter name="TrackerHitCollection" type="string" lcioInType="TrackerHit">  </parameter>    
+    <!--verbosity level of this processor ("DEBUG0-4,MESSAGE0-4,WARNING0-4,ERROR0-4,SILENT")-->
+    <!--parameter name="Verbosity" type="string">DEBUG </parameter-->
+    <!--Name of the Vertex collection-->
+    <parameter name="VertexCollection" type="string" lcioInType="Vertex">  </parameter>
+    <!--Switch to write out collection parameters-->
+    <parameter name="WriteCalorimeterHitCollectionParameters" type="bool">false</parameter>
+    <!--Switch to write out collection parameters-->
+    <parameter name="WriteClusterCollectionParameters" type="bool">false </parameter>
+    <!--Switch to write out collection parameters-->
+    <parameter name="WriteIsoLepCollectionParameters" type="bool">false </parameter>
+    <!--Switch to write out collection parameters-->
+    <parameter name="WriteJetCollectionParameters" type="bool">false </parameter>
+    <!--Switch to write out collection parameters-->
+    <parameter name="WriteMCParticleCollectionParameters" type="bool">false </parameter>
+    <!--Switch to write out collection parameters-->
+    <parameter name="WriteRecoParticleCollectionParameters" type="bool">false</parameter>
+    <!--Switch to write out collection parameters-->
+    <parameter name="WriteSimCalorimeterHitCollectionParameters" type="bool">false </parameter>
+    <!--Switch to write out collection parameters-->
+    <parameter name="WriteSimTrackerHitCollectionParameters" type="bool">false </parameter>
+    <!--Switch to write out collection parameters-->
+    <parameter name="WriteTrackCollectionParameters" type="bool">false </parameter>
+    <!--Switch to write out collection parameters-->
+    <parameter name="WriteTrackerHitCollectionParameters" type="bool">false </parameter>
+    <!--Switch to write out collection parameters-->
+    <parameter name="WriteVertexCollectionParameters" type="bool">false </parameter>
+  </processor>
+
+
+	<processor name="JetHistogramGenJetTuple" type="LCTuple">
+	<parameter name="JetCollection" type="string" lcioInType="ReconstructedParticle"> GenJet </parameter>
+	</processor>
+	
+	
+	
+  <!-- ======================================================================================================== -->
+  <!-- ======================================================================================================== -->
+  <!-- == Jet reconstruction configuration                                                                   == -->
+  <!-- ======================================================================================================== -->
+  <!-- ======================================================================================================== -->
+
+
+  <!-- ========== Jet clustering ================================== -->
+  <processor name="MyFastJetProcessor" type="FastJetProcessor">
+		<parameter name="algorithm" type="StringVec">kt_algorithm 0.5</parameter>
+		<parameter name="clusteringMode" type="StringVec"> Inclusive 5</parameter>
+		<parameter name="jetOut" type="string" lcioOutType="ReconstructedParticle">JetOut </parameter>
+		<parameter name="recParticleIn" type="string" lcioInType="ReconstructedParticle"> MergedRecoParticles </parameter>
+		<parameter name="storeParticlesInJets" type="boolean" > true </parameter>
+		<parameter name="recParticleOut" type="string" lcioOutType="ReconstructedParticle"> PFOsFromJets </parameter>
+		<parameter name="recombinationScheme" type="string">E_scheme </parameter>
+</processor>
+
+  <!-- ========== Vertexing for flavour tagging (constrained) ================================== -->
+  <group name="Vertexing">
+    <parameter name="Algorithms" type="stringVec"> PrimaryVertexFinder BuildUpVertex </parameter>
+    <parameter name="ReadSubdetectorEnergies" type="int" value="0"/> <!-- true for ILD -->
+    <parameter name="UpdateVertexRPDaughters" type="int" value="1"/> <!-- false for non-updative PandoraPFOs -->
+    <parameter name="TrackHitOrdering" type="int" value="2"/> <!-- Track hit ordering: 0=ILD-LOI (default), 1=ILD-DBD, 2=CLICdet -->
+    <parameter name="PrintEventNumber" type="int" value="1"/> <!-- 0 for not printing event number, n for printing every n events -->
+    <!-- specify input collection names -->
+    <parameter name="UseMCP" type="int" value="0" /> <!-- MC info not used -->
+    <parameter name="MCPCollection" type="string" value="MCParticle" />
+    <parameter name="MCPFORelation" type="string" value="RecoMCTruthLink" />
+    <parameter name="MagneticField" type="float" value="3.57"/> <!-- CLIC B field -->
+    <parameter name="BeamSizeX" type="float" value="0.0059"/> <!-- CLIC beam sizes from CDR -->
+    <parameter name="BeamSizeY" type="float" value="0.0059"/>
+    <parameter name="BeamSizeZ" type="float" value="10."/>
+    <!-- parameters for primary vertex finder -->
+    <parameter name="PrimaryVertexFinder.BeamspotSmearing" type="boolean" value="false" />
+    <parameter name="PrimaryVertexFinder.TrackMaxD0" type="double" value="0.1" />
+    <parameter name="PrimaryVertexFinder.TrackMaxZ0" type="double" value="0.1" />
+    <!--parameter name="PrimaryVertexFinder.TrackMinD0Err" type="double" value="0" /-->
+    <!--parameter name="PrimaryVertexFinder.TrackMinZ0Err" type="double" value="" /-->
+    <!--parameter name="PrimaryVertexFinder.TrackMaxInnermostHitRadius" type="double" value="31" /-->
+    <parameter name="PrimaryVertexFinder.TrackMinVtxFtdHits" type="int" value="4" />
+    <parameter name="PrimaryVertexFinder.Chi2Threshold" type="double" value="10." />
+
+    <!-- parameters for secondary vertex finder -->
+    <parameter name="BuildUpVertex.TrackMaxD0" type="double" value="5" />
+    <parameter name="BuildUpVertex.TrackMaxZ0" type="double" value="5" />
+    <parameter name="BuildUpVertex.TrackMinD0Z0Sig" type="double" value="2" />
+    <parameter name="BuildUpVertex.TrackMinPt" type="double" value="0.8" />
+    <parameter name="BuildUpVertex.TrackMaxD0Err" type="double" value="1" />
+    <parameter name="BuildUpVertex.TrackMaxZ0Err" type="double" value="1" />
+    <parameter name="BuildUpVertex.TrackMinVxdFtdHits" type="int" value="4" />
+    <parameter name="BuildUpVertex.PrimaryChi2Threshold" type="double" value="10." />
+    <parameter name="BuildUpVertex.SecondaryChi2Threshold" type="double" value="5." />
+    <parameter name="BuildUpVertex.MassThreshold" type="double" value="10." />
+    <parameter name="BuildUpVertex.MinDistFromIP" type="double" value="0.3" />
+    <parameter name="BuildUpVertex.MaxChi2ForDistOrder" type="double" value="1.0" />
+    <parameter name="BuildUpVertex.AssocIPTracks" type="int" value="1" />
+    <parameter name="BuildUpVertex.AssocIPTracksMinDist" type="double" value="0." />
+    <parameter name="BuildUpVertex.AssocIPTracksChi2RatioSecToPri" type="double" value="2.0" />
+    <parameter name="BuildUpVertex.UseV0Selection" type="int" value="1" />
+    <!-- AVF -->
+    <parameter name="BuildUpVertex.UseAVF" type="boolean" value="true" />
+    <parameter name="BuildUpVertex.AVFTemperature" type="double" value="1.0" />
+
+    <!-- Primary and Secondary vertex finder ================================================ -->
+    <processor name="VertexFinder" type="LcfiplusProcessor">
+      <!-- run primary and secondary vertex finders -->
+      <parameter name="PFOCollection" type="string" value="MergedRecoParticles" />
+      <parameter name="PrimaryVertexCollectionName" type="string" value="PrimaryVertices" />
+      <parameter name="BuildUpVertexCollectionName" type="string" value="BuildUpVertices" />
+      <parameter name="BuildUpVertex.V0VertexCollectionName" type="string" value="BuildUpVertices_V0" />
+      <parameter name="PrimaryVertexFinder.BeamspotConstraint" type="bool">1 </parameter>
+    </processor>  
+
+  </group>
+
+  <!-- ========== true jet clustering========== -->
+  <processor name="MyTrueMCintoRecoForJets" type="TrueMCintoRecoForJets">
+  <!--name of the pseudo RecoParticleCollection made from MCParticles-->
+  <parameter name="RECOParticleCollectionName" type="string" lcioInType="ReconstructedParticle">MCParticlePandoraPFOs</parameter>
+  <!--Name of the MCParticle input collection-->
+  <parameter name="MCParticleInputCollectionName" type="string" lcioInType="McParticle">MCParticle</parameter>
+  <!-- flag to ignore all neutrinos for GenJet filling-->
+  <parameter name="ignoreNeutrinosInMCJets" type="bool">true</parameter>
+  <!-- flag to veto all stable daughters of all vector boson leptons including neutrinos before MCTruthJet filling-->
+  <parameter name="vetoBosonLeptons" type="bool">false</parameter>
+  <!-- flag to veto PFOs angularly matched to MC e,mu's from vector bosons on RECO level, only then recoparticle jet collection will be filled-->
+  <parameter name="vetoBosonLeptonsOnReco" type="bool">false</parameter>
+  <!-- cosAngle for matching checks of PFOs and gen e and mu's from MC vector bosons, 0.995 corresponds to an angle of 5.7 degrees, veto-cone of 0.10 rad-->
+  <parameter name="cosAngle_pfo_lepton" type="float">0.995</parameter>
+  <!--name of the RecoParticleCollection removingleptons-->
+  <parameter name="RecoParticleNoLeptonCollectionName" type="string" lcioInType="ReconstructedParticle"></parameter>
+  <!--Name of the MCParticle input collection-->
+  <parameter name="RecoParticleInputCollectionName" type="string" lcioInType="ReconstructedParticle">MergedRecoParticles</parameter>
+</processor>
+
+<processor name="MyFastGenJetProcessor" type="FastJetProcessor">
+  <parameter name="recParticleIn" type="string" lcioInType="ReconstructedParticle"> MCParticlePandoraPFOs </parameter>
+  <!--parameters are R, beta, gamma -->
+  <parameter name="algorithm" type="StringVec"> kt_algorithm 0.5 </parameter>
+  <parameter name="clusteringMode" type="StringVec"> Inclusive 5 </parameter>
+  <parameter name="recombinationScheme" type="string">E_scheme </parameter>
+  <parameter name="jetOut" type="string" lcioOutType="ReconstructedParticle">GenJet</parameter>
+  <parameter name="storeParticlesInJets" type="bool">true</parameter>
+  <parameter name="recParticleOut" type="string" lcioOutType="ReconstructedParticle">PFOsFromGenJets</parameter>
+</processor>	
+
+</marlin>
